@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국내 주식 시황 주간 리포트 2026.03.08~03.13</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg:       #0d0f14;
+    --bg2:      #13161e;
+    --bg3:      #1a1e28;
+    --bg4:      #222736;
+    --border:   #2a2f3d;
+    --border2:  #353c50;
+    --text:     #e8eaf0;
+    --text2:    #9aa0b4;
+    --text3:    #5d6478;
+    --blue:     #4a9eff;
+    --blue-d:   #1a3a5c;
+    --blue-bg:  #0e1e30;
+    --red:      #ff5757;
+    --red-d:    #5c1a1a;
+    --red-bg:   #1e0e0e;
+    --green:    #39d98a;
+    --green-d:  #1a4c30;
+    --green-bg: #0e1e16;
+    --amber:    #f5a623;
+    --amber-d:  #4c3010;
+    --amber-bg: #1e160a;
+    --up:       #ff5757;
+    --dn:       #4a9eff;
+    --radius:   8px;
+    --radius-lg:14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── 레이아웃 ─────────────────────── */
+  .page { max-width: 960px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* ── 헤더 ─────────────────────────── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 32px 0 24px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .header-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--blue);
+    border: 1px solid var(--blue-d);
+    background: var(--blue-bg);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 5px; }
+  .dot-live { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── 섹션 ─────────────────────────── */
+  .section { margin-bottom: 40px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-d);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── 카드 ─────────────────────────── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+  }
+  .card + .card { margin-top: 12px; }
+
+  /* ── 지표 그리드 ──────────────────── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  @media(max-width:600px){ .metric-grid { grid-template-columns: repeat(2,1fr); } }
+  .metric-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; font-family: 'IBM Plex Mono', monospace; }
+  .metric-val { font-size: 22px; font-weight: 700; line-height: 1.1; margin-bottom: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .metric-val.up  { color: var(--up); }
+  .metric-val.dn  { color: var(--dn); }
+  .metric-val.neu { color: var(--amber); }
+  .metric-sub { font-size: 11px; color: var(--text3); }
+
+  /* ── 테이블 ───────────────────────── */
+  .tbl-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--bg3);
+    color: var(--text2);
+    font-weight: 500;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th.r { text-align: right; }
+  thead th.c { text-align: center; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+  tbody td { padding: 10px 14px; color: var(--text2); vertical-align: middle; }
+  tbody td.r { text-align: right; }
+  tbody td.c { text-align: center; }
+  .up-t  { color: var(--up);    font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .dn-t  { color: var(--dn);    font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .gr-t  { color: var(--green); font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .am-t  { color: var(--amber); font-weight: 600; }
+  .w-t   { color: var(--text);  font-weight: 500; }
+
+  /* ── 태그 뱃지 ────────────────────── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge-blue   { background: var(--blue-bg);  color: var(--blue);  border: 1px solid var(--blue-d); }
+  .badge-red    { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-d); }
+  .badge-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-d); }
+  .badge-amber  { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-d); }
+
+  /* ── 2열 그리드 ───────────────────── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:640px){ .grid2 { grid-template-columns: 1fr; } }
+
+  /* ── 차트 ─────────────────────────── */
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* ── 타임라인 ─────────────────────── */
+  .timeline { position: relative; padding-left: 24px; }
+  .tl-item {
+    position: relative;
+    padding: 0 0 20px 18px;
+    border-left: 1.5px solid var(--border2);
+  }
+  .tl-item:last-child { padding-bottom: 0; border-left-color: transparent; }
+  .tl-dot {
+    position: absolute;
+    left: -5px;
+    top: 5px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+  .tl-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .tl-text { font-size: 13px; color: var(--text2); line-height: 1.65; }
+  .tl-text strong { color: var(--text); font-weight: 500; }
+
+  /* ── 불릿 리스트 ──────────────────── */
+  .bullet-list { display: flex; flex-direction: column; gap: 10px; }
+  .bullet-item { display: flex; gap: 12px; align-items: flex-start; }
+  .bullet-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .bullet-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .bullet-text strong { color: var(--text); font-weight: 500; }
+
+  /* ── 정보 박스 ────────────────────── */
+  .info-box {
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.65;
+    margin-top: 12px;
+  }
+  .info-box.blue  { background: var(--blue-bg);  border: 1px solid var(--blue-d);  color: #7ec4ff; }
+  .info-box.amber { background: var(--amber-bg); border: 1px solid var(--amber-d); color: #f5c060; }
+  .info-box.green { background: var(--green-bg); border: 1px solid var(--green-d); color: #6eedb0; }
+  .info-box strong { color: inherit; font-weight: 600; }
+
+  /* ── 소분류 제목 ──────────────────── */
+  .sub-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── 수급 미니 바 ─────────────────── */
+  .flow-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .flow-row:last-child { border-bottom: none; }
+  .flow-name { width: 160px; color: var(--text2); flex-shrink: 0; }
+  .flow-bar-wrap { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .flow-bar { height: 100%; border-radius: 3px; transition: width .6s ease; }
+  .flow-val { width: 80px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600; flex-shrink: 0; }
+
+  /* ── 테마 강세 카드 ───────────────── */
+  .theme-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .theme-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .theme-card-stocks { font-size: 12px; color: var(--text2); margin-bottom: 8px; line-height: 1.5; }
+  .theme-stars { font-size: 12px; }
+  .star-on  { color: var(--amber); }
+  .star-off { color: var(--border2); }
+
+  /* ── 테마 그리드 ──────────────────── */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 10px;
+  }
+  @media(max-width:640px){ .theme-grid { grid-template-columns: 1fr; } }
+
+  /* ── 푸터 ─────────────────────────── */
+  .footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    line-height: 1.8;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ── 애니메이션 ───────────────────── */
+  .fade-in { opacity: 0; transform: translateY(16px); animation: fadeUp .5s ease forwards; }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+  .fade-in:nth-child(1){animation-delay:.05s}
+  .fade-in:nth-child(2){animation-delay:.1s}
+  .fade-in:nth-child(3){animation-delay:.15s}
+  .fade-in:nth-child(4){animation-delay:.2s}
+  .fade-in:nth-child(5){animation-delay:.25s}
+  .fade-in:nth-child(6){animation-delay:.3s}
+
+  /* ── 네비게이션 ───────────────────── */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+  .nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 8px 0;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    color: var(--blue);
+    border-color: var(--blue-d);
+    background: var(--blue-bg);
+  }
+
+  /* ── 스크롤바 ─────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="scrollTo('s1')">01 지수·환율</button>
+    <button class="nav-btn" onclick="scrollTo('s2')">02 주도테마</button>
+    <button class="nav-btn" onclick="scrollTo('s3')">03 이슈분석</button>
+    <button class="nav-btn" onclick="scrollTo('s4')">04 차주전망</button>
+    <button class="nav-btn" onclick="scrollTo('s5')">05 투자전략</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- 헤더 -->
+  <header class="header">
+    <div class="header-badge">WEEKLY MARKET REPORT</div>
+    <h1>국내 주식 시황<br>주간 리포트</h1>
+    <div class="header-meta">
+      <span><span class="dot-live"></span>2026.03.08 ~ 03.13</span>
+      <span>작성일: 2026.03.14</span>
+      <span>KOSPI · KOSDAQ · 외국인 수급</span>
+    </div>
+  </header>
+
+  <!-- ══ 1. 지수 및 환율 ══════════════════ -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">지수 및 환율 변화 / 외국인 매매동향</h2>
+    </div>
+
+    <!-- 지표 카드 -->
+    <div class="metric-grid">
+      <div class="metric-card fade-in">
+        <div class="metric-label">KOSPI 주간 마감</div>
+        <div class="metric-val up">5,487</div>
+        <div class="metric-sub">주간 -1.7% (전주말 5,584)</div>
+      </div>
+      <div class="metric-card fade-in">
+        <div class="metric-label">KOSDAQ 주간 마감</div>
+        <div class="metric-val" style="color:var(--green)">1,148</div>
+        <div class="metric-sub">주간 +0.5% 상대 선방</div>
+      </div>
+      <div class="metric-card fade-in">
+        <div class="metric-label">원/달러 환율</div>
+        <div class="metric-val up">1,481</div>
+        <div class="metric-sub">고점 1,500원 근접 후 안정</div>
+      </div>
+      <div class="metric-card fade-in">
+        <div class="metric-label">WTI 국제유가</div>
+        <div class="metric-val neu">$95~100</div>
+        <div class="metric-sub">배럴당 100달러 돌파 시도</div>
+      </div>
+    </div>
+
+    <!-- 차트 + 테이블 -->
+    <div class="grid2" style="margin-bottom:14px;">
+      <div class="card">
+        <div class="sub-title">일별 지수 흐름</div>
+        <div class="chart-wrap" style="height:200px;">
+          <canvas id="indexChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sub-title">일별 등락 요약</div>
+        <div class="tbl-wrap" style="border:none;">
+          <table>
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th class="r">코스피</th>
+                <th class="r">등락률</th>
+                <th class="r">코스닥</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="w-t">3/9 월</td><td class="r">5,252</td><td class="r up-t">-5.96%</td><td class="r">1,102</td></tr>
+              <tr><td class="w-t">3/10 화</td><td class="r">5,533</td><td class="r gr-t">+5.35%</td><td class="r">1,128</td></tr>
+              <tr><td class="w-t">3/11 수</td><td class="r">5,610</td><td class="r gr-t">+1.40%</td><td class="r">1,137</td></tr>
+              <tr><td class="w-t">3/12 목</td><td class="r">5,583</td><td class="r up-t">-0.48%</td><td class="r">1,148</td></tr>
+              <tr><td class="w-t">3/13 금</td><td class="r">5,487</td><td class="r up-t">-1.72%</td><td class="r">1,127</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 외국인 수급 -->
+    <div class="card">
+      <div class="sub-title">외국인 투자자 매매동향</div>
+      <div class="flow-row">
+        <span class="flow-name">3/3~3/9 누적 순매도</span>
+        <div class="flow-bar-wrap"><div class="flow-bar" style="width:100%;background:var(--red);"></div></div>
+        <span class="flow-val up-t">-10.2조</span>
+      </div>
+      <div class="flow-row">
+        <span class="flow-name">3/10 순매수 전환</span>
+        <div class="flow-bar-wrap"><div class="flow-bar" style="width:10%;background:var(--green);"></div></div>
+        <span class="flow-val gr-t">+1.07조</span>
+      </div>
+      <div class="flow-row">
+        <span class="flow-name">3/12 재순매도</span>
+        <div class="flow-bar-wrap"><div class="flow-bar" style="width:23%;background:var(--red);"></div></div>
+        <span class="flow-val up-t">-2.36조</span>
+      </div>
+      <div class="flow-row">
+        <span class="flow-name">조선 3사 누적 순매수</span>
+        <div class="flow-bar-wrap"><div class="flow-bar" style="width:37%;background:var(--blue);"></div></div>
+        <span class="flow-val dn-t">+3,725억</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 2. 핵심 주도 테마 ═══════════════ -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">핵심 주도 테마 및 주도종목 흐름</h2>
+    </div>
+
+    <div class="grid2" style="margin-bottom:14px;">
+      <!-- 급등 테마 -->
+      <div class="card">
+        <div class="sub-title">방산 · 에너지 급등주</div>
+        <div class="tbl-wrap" style="border:none;">
+          <table>
+            <thead><tr><th>종목</th><th class="r">주간 등락</th><th>테마</th></tr></thead>
+            <tbody>
+              <tr><td class="w-t">LIG넥스원</td><td class="r up-t">+48.3%</td><td><span class="badge badge-red">방산</span></td></tr>
+              <tr><td class="w-t">한화시스템</td><td class="r up-t">+34.1%</td><td><span class="badge badge-red">방산</span></td></tr>
+              <tr><td class="w-t">한화에어로스페이스</td><td class="r up-t">+22.6%</td><td><span class="badge badge-red">방산</span></td></tr>
+              <tr><td class="w-t">HD현대에너지솔루션</td><td class="r up-t">+24.5%</td><td><span class="badge badge-amber">신재생</span></td></tr>
+              <tr><td class="w-t">우리기술 (원전MMIS)</td><td class="r up-t">+16.2%</td><td><span class="badge badge-amber">원전</span></td></tr>
+              <tr><td class="w-t">대우건설 (체코원전)</td><td class="r up-t">+21.9%</td><td><span class="badge badge-green">건설</span></td></tr>
+              <tr><td class="w-t">인텔리안테크</td><td class="r up-t">+17.6%</td><td><span class="badge badge-blue">통신장비</span></td></tr>
+              <tr><td class="w-t">포스코인터내셔널</td><td class="r up-t">+10.1%</td><td><span class="badge badge-amber">에너지</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 외국인 선호 -->
+      <div class="card">
+        <div class="sub-title">외국인 선별 매수 종목</div>
+        <div class="tbl-wrap" style="border:none;">
+          <table>
+            <thead><tr><th>종목</th><th class="r">순매수</th><th>섹터</th></tr></thead>
+            <tbody>
+              <tr><td class="w-t">HD현대중공업</td><td class="r dn-t">+1,486억</td><td><span class="badge badge-blue">조선</span></td></tr>
+              <tr><td class="w-t">삼성중공업</td><td class="r dn-t">+1,449억</td><td><span class="badge badge-blue">조선</span></td></tr>
+              <tr><td class="w-t">한화오션</td><td class="r dn-t">+790억</td><td><span class="badge badge-blue">조선</span></td></tr>
+              <tr><td class="w-t">현대건설</td><td class="r dn-t">순매수</td><td><span class="badge badge-green">건설</span></td></tr>
+              <tr><td class="w-t">삼성E&amp;A</td><td class="r dn-t">순매수</td><td><span class="badge badge-green">건설</span></td></tr>
+              <tr><td class="w-t">한미약품</td><td class="r dn-t">순매수</td><td><span class="badge badge-amber">바이오</span></td></tr>
+              <tr><td class="w-t">현대로템</td><td class="r dn-t">순매수</td><td><span class="badge badge-red">방산·철도</span></td></tr>
+              <tr><td class="w-t">리가켐바이오</td><td class="r dn-t">순매수</td><td><span class="badge badge-amber">바이오</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 약세 업종 -->
+    <div class="info-box amber">
+      <strong>약세 / 피해 업종</strong>  반도체(삼성전자·SK하이닉스) | 2차전지 | 금융·보험 | 통신·유통 | 소비재<br>
+      → 유가 급등 + 외국인 대규모 매도 여파. 반도체 대형주는 한 주간 개별 <strong>-10% 내외 급락</strong>.
+    </div>
+  </section>
+
+  <!-- ══ 3. 이슈 분석 ═══════════════════ -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">국내외 주요 이슈와 주가 영향</h2>
+    </div>
+
+    <div class="card">
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--red)"></div>
+          <div class="tl-date" style="color:var(--red)">3/3 ~ 3/4 &nbsp;(배경)</div>
+          <div class="tl-text">
+            미국·이스라엘 이란 대규모 공습 개시 → 코스피 이틀간 <strong>-19%</strong>. 3/4 서킷브레이커 발동.<br>
+            역대 최대 일일 낙폭(<strong>-12.06%</strong>) 기록. 환율 1,500원 돌파. 외국인 5조원 이상 매도 러시.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--green)"></div>
+          <div class="tl-date" style="color:var(--green)">3/5 &nbsp;(전주)</div>
+          <div class="tl-text">
+            트럼프 <strong>"전쟁 곧 끝날 것"</strong> 발언 + 낙폭 과대 인식 → 코스피 <strong>+9.63%</strong> 급반등. 매수 사이드카 발동.<br>
+            CME 증거금 체계 개편 → 글로벌 펀드 유동성 확보 매도가 주된 원인으로 분석.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--red)"></div>
+          <div class="tl-date" style="color:var(--red)">3/9 &nbsp;월요일</div>
+          <div class="tl-text">
+            이란 신지도자 강경발언 · 호르무즈 해협 긴장 재고조 → 코스피 <strong>-5.96%</strong>.<br>
+            외국인 <strong>7.7조원</strong> 대규모 매도. 서킷브레이커 재발동. WTI 100달러 재돌파 시도.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--green)"></div>
+          <div class="tl-date" style="color:var(--green)">3/10 &nbsp;화요일</div>
+          <div class="tl-text">
+            트럼프 조기 종전 가능성 재시사 + IEA 비축유 방출 논의 → 코스피 <strong>+5.35%</strong>(5,533).<br>
+            외국인 매수 전환(<strong>+1.07조</strong>). 매수 사이드카 발동. SK하이닉스 +8.6%, 삼성전자 +7.3% 급반등.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--amber)"></div>
+          <div class="tl-date" style="color:var(--amber)">3/11 &nbsp;수요일</div>
+          <div class="tl-text">
+            호르무즈 해협 선박 3척 피격 확인(태국·일본·마샬제도 국적) → 상승 출발 후 낙폭 반납.<br>
+            코스피 <strong>+1.40%</strong>(5,610). 방산주 재강세. 원전주 동반 상승.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--red)"></div>
+          <div class="tl-date" style="color:var(--red)">3/12 &nbsp;목요일</div>
+          <div class="tl-text">
+            IEA 4억 배럴 비축유 방출 발표에도 유가 $90 재돌파. <strong>'네 마녀의 날'</strong> 변동성 확대.<br>
+            코스피 <strong>-0.48%</strong>(5,583). 외국인 -2.36조. 코스닥 <strong>+1.02%</strong> 개인·기관 매수로 선방.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--red)"></div>
+          <div class="tl-date" style="color:var(--red)">3/13 &nbsp;금요일</div>
+          <div class="tl-text">
+            이란 신지도자 호르무즈 봉쇄 유지 발언 + 유가 $100 재돌파. 미국 증시 급락(<strong>-1.56%</strong>) 연쇄.<br>
+            코스피 <strong>-1.72%</strong>(5,487). 대우건설 체코 원전 본계약 임박 소식에 <strong>+21.9%</strong> 예외적 강세.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 4. 차주 전망 ═══════════════════ -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">차주(3/16~20) 예상 강세 테마 및 종목</h2>
+    </div>
+
+    <div class="theme-grid" style="margin-bottom:14px;">
+      <div class="theme-card">
+        <div class="theme-card-title">방산 <span class="badge badge-red">강세 지속</span></div>
+        <div class="theme-card-stocks">한화에어로스페이스, LIG넥스원, 한화시스템</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">중동 긴장 지속 · 글로벌 군비 확장</div>
+        <div class="theme-stars">
+          <span class="star-on">★★★</span> <span style="font-size:11px;color:var(--amber);">(차익 유의)</span>
+        </div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">원전 · 에너지 인프라 <span class="badge badge-amber">★★★</span></div>
+        <div class="theme-card-stocks">두산에너빌리티, 우리기술, 보성파워텍, 대우건설</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">유가 급등 대체에너지 · 체코 원전 본계약</div>
+        <div class="theme-stars"><span class="star-on">★★★</span></div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">조선 LNG운반선 <span class="badge badge-blue">외국인 선호</span></div>
+        <div class="theme-card-stocks">HD현대중공업, 삼성중공업, 한화오션</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">호르무즈 봉쇄 → LNG 운송 경로 확대</div>
+        <div class="theme-stars"><span class="star-on">★★</span><span class="star-off">★</span></div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">건설 전후재건 <span class="badge badge-green">신흥 강세</span></div>
+        <div class="theme-card-stocks">현대건설, 대우건설, 삼성E&amp;A</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">에너지 인프라 투자 · 중동 재건 수요</div>
+        <div class="theme-stars"><span class="star-on">★★</span><span class="star-off">★</span></div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">낙폭 과대 반도체 <span class="badge badge-blue">조건부</span></div>
+        <div class="theme-card-stocks">삼성전자, SK하이닉스</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">저PBR 매력 · 중동 리스크 완화 시 반등</div>
+        <div class="theme-stars"><span class="star-on">★★</span><span class="star-off">★</span></div>
+      </div>
+      <div class="theme-card">
+        <div class="theme-card-title">통신장비 <span class="badge badge-green">신흥</span></div>
+        <div class="theme-card-stocks">인텔리안테크</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">위성통신 방산 연계 · AT&T CAPEX 확대</div>
+        <div class="theme-stars"><span class="star-on">★★</span><span class="star-off">★</span></div>
+      </div>
+    </div>
+
+    <div class="info-box amber">
+      <strong>차주 핵심 변수 3가지</strong><br>
+      ① 유가 (WTI $90 이하 안정 여부) &nbsp;② 트럼프 추가 발언 (TACO 트레이드 지속) &nbsp;③ 3/18~19 FOMC 금리 결정<br>
+      → 유가 안정 시: 낙폭 과대 반도체·2차전지 반등 가능 &nbsp;|&nbsp; 유가 재급등 시: 방산·원전·조선 지속 강세
+    </div>
+  </section>
+
+  <!-- ══ 5. 투자 전략 ═══════════════════ -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">개인투자자 투자 방향 및 리스크 관리</h2>
+    </div>
+
+    <div class="grid2" style="margin-bottom:14px;">
+      <div class="card">
+        <div class="sub-title">투자 방향</div>
+        <div class="bullet-list">
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--blue)"></div>
+            <div class="bullet-text"><strong>분할 매수 원칙</strong> — 유가 불안 지속 환경에서 집중 투자는 위험. 관심 종목 3회 이상 분할 진입.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--green)"></div>
+            <div class="bullet-text"><strong>낙폭 과대 우량주 선별</strong> — 삼성전자·SK하이닉스는 외국인 매도로 과도하게 하락. PBR 저평가 구간에서 장기 분할 매수 검토.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--amber)"></div>
+            <div class="bullet-text"><strong>테마주 단기 접근</strong> — 방산·원전은 큰 폭 상승 후. 신규 진입보다 기존 보유자 일부 차익 실현 고려.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--green)"></div>
+            <div class="bullet-text"><strong>수급 추종</strong> — 외국인 매수 전환 섹터(조선·건설)와 기관 순매수 종목 중심으로 포트폴리오 구성.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sub-title">리스크 관리</div>
+        <div class="bullet-list">
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--red)"></div>
+            <div class="bullet-text"><strong>유가 재급등 리스크</strong> — WTI $100 이상 안착 시 코스피 재차 조정. 에너지 제외 전 업종 하방 압력.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--red)"></div>
+            <div class="bullet-text"><strong>환율 리스크</strong> — 원/달러 1,500원 재돌파 시 외국인 추가 이탈 우려. 일별 환율 모니터링 필수.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--amber)"></div>
+            <div class="bullet-text"><strong>레버리지 ETF 자제</strong> — 개인 레버리지 ETF 6,000억 집중 매수 구간. 방향 불일치 시 손실 배가. 비중 최소화.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--amber)"></div>
+            <div class="bullet-text"><strong>FOMC(3/18~19) 경계</strong> — 유가 급등 → 인플레 압력 → 금리 인하 기대 후퇴 가능. 매파 신호 시 증시 추가 부담.</div>
+          </div>
+          <div class="bullet-item">
+            <div class="bullet-dot" style="background:var(--blue)"></div>
+            <div class="bullet-text"><strong>손절 기준 사전 설정</strong> — 종목별 -7~10% 손절선 사전 정의. 감정적 버티기보다 원칙적 손절이 유리.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box blue">
+      <strong>개인 투자자가 기억할 핵심 한 가지</strong><br>
+      "외국인이 10조 팔 때 받아서 수익 낸 적이 있는가?"<br>
+      저점은 외국인이 돌아올 때 확인된다. 지금은 추격 매수보다 <strong>기다리며 분할 대응</strong>이 이기는 전략이다.
+    </div>
+  </section>
+
+  <!-- 푸터 -->
+  <footer class="footer">
+    <p>본 리포트는 공개 자료를 바탕으로 작성된 투자 참고용 문서입니다.</p>
+    <p>실제 투자 결정과 손익에 대한 책임은 투자자 본인에게 있으며 어떠한 투자 결과에도 책임지지 않습니다.</p>
+    <p style="margin-top:6px;">기준일: 2026.03.08 ~ 03.13 &nbsp;|&nbsp; 작성: Claude AI 시황 분석 &nbsp;|&nbsp; 2026.03.14</p>
+  </footer>
+
+</div><!-- /page -->
+
+<script>
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+/* ── 인덱스 차트 ── */
+const ctx = document.getElementById('indexChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['3/8(전)', '3/9(월)', '3/10(화)', '3/11(수)', '3/12(목)', '3/13(금)'],
+    datasets: [
+      {
+        label: '코스피',
+        data: [5584, 5252, 5533, 5610, 5583, 5487],
+        borderColor: '#ff5757',
+        backgroundColor: 'rgba(255,87,87,0.08)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#ff5757',
+        pointBorderColor: '#0d0f14',
+        pointBorderWidth: 2,
+        borderWidth: 2,
+        yAxisID: 'y',
+      },
+      {
+        label: '코스닥',
+        data: [1142, 1102, 1128, 1137, 1148, 1127],
+        borderColor: '#4a9eff',
+        backgroundColor: 'transparent',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#4a9eff',
+        pointBorderColor: '#0d0f14',
+        pointBorderWidth: 2,
+        borderWidth: 1.5,
+        borderDash: [5, 3],
+        yAxisID: 'y2',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a1e28',
+        borderColor: '#2a2f3d',
+        borderWidth: 1,
+        titleColor: '#9aa0b4',
+        bodyColor: '#e8eaf0',
+        padding: 10,
+        callbacks: {
+          label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString()
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#1a1e28', drawBorder: false },
+        ticks: { color: '#5d6478', font: { size: 10 } }
+      },
+      y: {
+        position: 'left',
+        grid: { color: '#1a1e28', drawBorder: false },
+        ticks: { color: '#5d6478', font: { size: 10 },
+          callback: v => (v/1000).toFixed(1) + 'K'
+        }
+      },
+      y2: {
+        position: 'right',
+        grid: { drawOnChartArea: false },
+        ticks: { color: '#4a9eff', font: { size: 10 },
+          callback: v => v.toLocaleString()
+        }
+      }
+    }
+  }
+});
+
+/* ── 스크롤 시 네비 활성화 ── */
+const sections = ['s1','s2','s3','s4','s5'];
+const navBtns  = document.querySelectorAll('.nav-btn');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = sections.indexOf(e.target.id);
+      navBtns.forEach(b => b.classList.remove('active'));
+      if (idx >= 0) navBtns[idx].classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -50% 0px' });
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+</script>
+
+</body>
+</html>
