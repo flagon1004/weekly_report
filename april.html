@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>월간 시황 리포트 — 2026년 4월</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f5f3ef; --surface: #fff; --surface2: #f0ede8;
+      --border: #ddd9d0; --accent: #9a7840; --accent2: #0277bd;
+      --up: #c0392b; --down: #2e7d52;
+      --text: #1a1a1a; --muted: #5a5a6a; --dim: #9a9aaa;
+      --radius: 12px;
+    }
+    [data-theme="dark"] {
+      --bg: #0a0b0e; --surface: #111318; --surface2: #1a1d26;
+      --border: #2a2d3a; --accent: #c8a96e; --accent2: #4fc3f7;
+      --up: #e05c5c; --down: #4caf82;
+      --text: #e8e6e0; --muted: #7a7f8e; --dim: #4a4f5e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); transition: background .3s, color .3s; }
+
+    /* ── 네비 ── */
+    .nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 2rem; height: 56px; gap: 1rem; }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
+    .nav-links { display: flex; gap: .5rem; flex: 1; flex-wrap: wrap; }
+    .nav-links a { font-family: 'IBM Plex Mono', monospace; font-size: .72rem; color: var(--muted); text-decoration: none; padding: .25rem .6rem; border-radius: 6px; border: 1px solid var(--border); transition: color .2s, border-color .2s; }
+    .nav-links a:hover { color: var(--accent); border-color: var(--accent); }
+    .theme-btn { margin-left: auto; cursor: pointer; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .3rem .7rem; font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--muted); }
+
+    /* ── 공통 ── */
+    .section { max-width: 1100px; margin: 0 auto 3rem; padding: 2rem 1.5rem 0; }
+    .section-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .sec-icon { font-size: 1.8rem; }
+    .sec-title-ko { font-family: 'DM Serif Display', serif; font-size: 1.4rem; }
+    .sec-title-en { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+    .up { color: var(--up); } .down { color: var(--down); }
+    .badge { font-family: 'IBM Plex Mono', monospace; font-size: .68rem; padding: .2rem .5rem; border-radius: 4px; }
+    .badge-file { background: rgba(155,120,64,.12); color: var(--accent); }
+    .badge-search { background: rgba(2,119,189,.12); color: var(--accent2); }
+
+    /* ── 배너 ── */
+    .hero { background: var(--surface); border-bottom: 1px solid var(--border); padding: 2.5rem 1.5rem; text-align: center; }
+    .hero-sub { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; color: var(--dim); text-transform: uppercase; letter-spacing: .12em; margin-bottom: .4rem; }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-size: 2.4rem; color: var(--text); }
+    .hero-meta { font-family: 'IBM Plex Mono', monospace; font-size: .82rem; color: var(--muted); margin-top: .5rem; }
+    .hero-badge { display: inline-block; margin-top: .8rem; background: rgba(192,57,43,.1); color: var(--up); font-family: 'IBM Plex Mono', monospace; font-size: .8rem; padding: .3rem .8rem; border-radius: 20px; border: 1px solid rgba(192,57,43,.3); font-weight: 600; }
+
+    /* ── s1 지수 카드 ── */
+    .index-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .index-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.5rem; }
+    .index-card .name { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; color: var(--muted); text-transform: uppercase; margin-bottom: .5rem; }
+    .index-card .value { font-family: 'IBM Plex Mono', monospace; font-size: 2rem; font-weight: 600; }
+    .index-card .change { font-family: 'IBM Plex Mono', monospace; font-size: .9rem; margin-top: .3rem; }
+    .index-card .meta { font-size: .78rem; color: var(--muted); margin-top: .4rem; }
+    .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
+    .chart-title { font-family: 'IBM Plex Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: 1rem; }
+
+    /* ── s2 수급 ── */
+    .flow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .flow-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .flow-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
+    .flow-label { font-family: 'IBM Plex Mono', monospace; font-size: .78rem; color: var(--muted); text-transform: uppercase; margin-bottom: .8rem; }
+    .flow-value { font-family: 'IBM Plex Mono', monospace; font-size: 1.4rem; font-weight: 600; }
+    .flow-sub { font-size: .78rem; color: var(--muted); margin-top: .3rem; }
+
+    /* ── s3 거시 ── */
+    .macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .macro-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: .4rem; }
+    .macro-label { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--muted); }
+    .macro-value { font-family: 'IBM Plex Mono', monospace; font-size: 1.3rem; font-weight: 600; }
+    .macro-change { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; }
+
+    /* ── s4 섹터 ── */
+    .sector-list { display: flex; flex-direction: column; gap: .6rem; }
+    .sector-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.2rem; display: grid; grid-template-columns: 140px 90px 1fr; align-items: center; gap: 1rem; }
+    .sector-name { font-weight: 500; }
+    .sector-pct { font-family: 'IBM Plex Mono', monospace; font-weight: 600; text-align: right; }
+    .sector-bar-wrap { flex: 1; }
+    .sector-bar { height: 6px; border-radius: 3px; }
+    .sector-summary { font-size: .82rem; color: var(--muted); grid-column: 1 / -1; padding-top: .3rem; }
+    .sector-divider { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; padding: .6rem 0 .2rem; }
+
+    /* ── s5 종목 ── */
+    .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .8rem; margin-bottom: 1.5rem; }
+    .stock-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .stock-name { font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
+    .stock-code { font-family: 'IBM Plex Mono', monospace; font-size: .72rem; color: var(--dim); }
+    .stock-pct { font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; font-weight: 600; margin: .4rem 0; }
+    .stock-reason { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+    .theme-list { display: flex; flex-direction: column; gap: .8rem; }
+    .theme-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
+    .theme-name { font-weight: 700; color: var(--accent); margin-bottom: .4rem; font-size: .95rem; }
+    .theme-summary { font-size: .85rem; color: var(--muted); line-height: 1.5; }
+    .theme-stocks { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--dim); margin-top: .4rem; }
+    .subsec-title { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--text); margin: 1.5rem 0 .8rem; }
+
+    /* ── s6 뉴스 ── */
+    .news-list { display: flex; flex-direction: column; gap: .8rem; }
+    .news-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: start; }
+    .news-impact { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; padding: .2rem .5rem; border-radius: 4px; white-space: nowrap; margin-top: .15rem; }
+    .impact-pos { background: rgba(192,57,43,.12); color: var(--up); }
+    .impact-neg { background: rgba(46,125,82,.12); color: var(--down); }
+    .impact-neu { background: var(--surface2); color: var(--muted); }
+    .news-title { font-weight: 600; margin-bottom: .3rem; font-size: .9rem; }
+    .news-summary { font-size: .83rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── s7 전망·총평 ── */
+    .outlook-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+    .outlook-label { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .6rem; }
+    .outlook-text { line-height: 1.75; color: var(--text); font-size: .95rem; }
+
+    /* ── 데이터 소스 ── */
+    .data-source { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--dim); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 640px) {
+      .index-cards, .flow-cards { grid-template-columns: 1fr; }
+      .macro-grid { grid-template-columns: 1fr 1fr; }
+      .flow-grid { grid-template-columns: 1fr; }
+      .sector-row { grid-template-columns: 1fr 70px; }
+      .sector-summary { grid-column: 1 / -1; }
+      .nav-links { display: none; }
+      .hero h1 { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 네비 ── -->
+<header class="nav">
+  <div class="nav-logo">한상훈_AI_투자브리핑</div>
+  <nav class="nav-links">
+    <a href="#s1">📊 월간개요</a>
+    <a href="#s2">💹 수급분석</a>
+    <a href="#s3">🏦 거시지표</a>
+    <a href="#s4">🏭 섹터</a>
+    <a href="#s5">⚡ 종목·테마</a>
+    <a href="#s6">📰 이슈</a>
+    <a href="#s7">📋 전망·총평</a>
+  </nav>
+  <button class="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+</header>
+
+<!-- ── 배너 ── -->
+<div class="hero">
+  <div class="hero-sub">Monthly Market Report</div>
+  <h1>2026년 4월 월간 시황</h1>
+  <div class="hero-meta">2026.04.01 ~ 2026.04.30 &nbsp;|&nbsp; 한상훈_AI_투자브리핑</div>
+  <div class="hero-badge">🚀 코스피 사상 최고치 경신 · 장중 6,750p 돌파</div>
+</div>
+
+<!-- ── s1: 월간 개요 ── -->
+<section id="s1" class="section">
+  <div class="section-header">
+    <span class="sec-icon">📊</span>
+    <div>
+      <div class="sec-title-ko">월간 지수 요약</div>
+      <div class="sec-title-en">Monthly Indices</div>
+    </div>
+  </div>
+
+  <div class="index-cards">
+    <div class="index-card">
+      <div class="name">KOSPI <span class="badge badge-search">[검색]</span></div>
+      <div class="value up">6,598.87</div>
+      <div class="change up">▲ +1,078.87p &nbsp; +19.5%</div>
+      <div class="meta">월초(4/1) 5,520 → 월말(4/30) 6,598.87 · 장중 최고 6,750.27</div>
+    </div>
+    <div class="index-card">
+      <div class="name">KOSDAQ <span class="badge badge-search">[검색]</span></div>
+      <div class="value up">1,192.35</div>
+      <div class="change up">▲ +232.35p &nbsp; +24.2%</div>
+      <div class="meta">월초(4/1) 960 → 월말(4/30) 1,192.35 · 코스피 대비 상대 강세</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">주차별 종가 추이 — 코스피(좌) / 코스닥(우)</div>
+    <canvas id="mainChart" height="90"></canvas>
+  </div>
+</section>
+
+<!-- ── s2: 수급 분석 ── -->
+<section id="s2" class="section">
+  <div class="section-header">
+    <span class="sec-icon">💹</span>
+    <div>
+      <div class="sec-title-ko">투자자별 수급</div>
+      <div class="sec-title-en">Investor Flow</div>
+    </div>
+  </div>
+
+  <div class="flow-cards">
+    <div class="flow-card">
+      <div class="flow-label">외국인 <span class="badge badge-search">[검색]</span></div>
+      <div class="flow-value up">+18조원</div>
+      <div class="flow-sub">SK하이닉스 1.78조 · 삼성전자 1.72조 대규모 매수</div>
+    </div>
+    <div class="flow-card">
+      <div class="flow-label">기관 <span class="badge badge-search">[검색]</span></div>
+      <div class="flow-value up">+9조원</div>
+      <div class="flow-sub">SK하이닉스 2.06조 · 삼성전자 1.01조 집중 매수</div>
+    </div>
+    <div class="flow-card">
+      <div class="flow-label">개인 <span class="badge badge-search">[검색]</span></div>
+      <div class="flow-value down">-14.7조원</div>
+      <div class="flow-sub">역대 최대 월간 순매도 · 삼성전자 8.0조 차익실현</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">투자자별 월간 순매수 (억원) — 코스피 기준</div>
+    <canvas id="flowChart" height="80"></canvas>
+  </div>
+</section>
+
+<!-- ── s3: 거시지표 ── -->
+<section id="s3" class="section">
+  <div class="section-header">
+    <span class="sec-icon">🏦</span>
+    <div>
+      <div class="sec-title-ko">거시경제 지표</div>
+      <div class="sec-title-en">Macro Indicators</div>
+    </div>
+  </div>
+  <div class="macro-grid">
+    <div class="macro-card">
+      <div class="macro-label">한국 기준금리 <span class="badge badge-search">[검색]</span></div>
+      <div class="macro-value">2.50%</div>
+      <div class="macro-change" style="color:var(--muted)">동결 (7회 연속)</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">미국 기준금리 (FOMC) <span class="badge badge-search">[검색]</span></div>
+      <div class="macro-value">3.50~3.75%</div>
+      <div class="macro-change up">매파적 동결 · 4/30 결과 발표</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">원/달러 환율 <span class="badge badge-search">[검색]</span></div>
+      <div class="macro-value">1,474원</div>
+      <div class="macro-change down">고환율 지속 · 4월말 기준</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">브렌트유 <span class="badge badge-search">[검색]</span></div>
+      <div class="macro-value">$111~120</div>
+      <div class="macro-change up">호르무즈 리스크 · 4년 만의 최고치 구간</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">1Q26 GDP 성장률 <span class="badge badge-search">[검색]</span></div>
+      <div class="macro-value">+1.7%</div>
+      <div class="macro-change up">QoQ · YoY +3.6% · 5년 만 최고</div>
+    </div>
+    <div class="macro-card">
+      <div class="macro-label">소비자물가(CPI) <span class="badge badge-search">[검색]</span></div>
+      <div class="macro-value">+2.2%</div>
+      <div class="macro-change up">한은 목표(2%) 상회 · 유가 상방 압력</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── s4: 섹터 ── -->
+<section id="s4" class="section">
+  <div class="section-header">
+    <span class="sec-icon">🏭</span>
+    <div>
+      <div class="sec-title-ko">섹터 분석</div>
+      <div class="sec-title-en">Sector Analysis</div>
+    </div>
+  </div>
+
+  <div class="sector-list">
+    <div class="sector-divider">🔺 강세 섹터 Top 5</div>
+
+    <!-- 건설/플랜트 -->
+    <div class="sector-row">
+      <div class="sector-name">건설 / 플랜트</div>
+      <div class="sector-pct up">+62%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:72%;background:var(--up)"></div></div>
+      <div class="sector-summary">대우건설(+102.8%), 대한전선(+99.3%), GS건설(+44.4%) 급등. 중동 전쟁 이후 재건 특수 기대 및 도심 재개발 수주 확대로 월간 최강 섹터 등극. <span class="badge badge-file">[파일]</span></div>
+    </div>
+
+    <!-- 반도체/IT -->
+    <div class="sector-row">
+      <div class="sector-name">반도체 / IT</div>
+      <div class="sector-pct up">+45%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:52%;background:var(--up)"></div></div>
+      <div class="sector-summary">SK하이닉스 1Q26 영업이익률 72%(창사 이래 최고), 삼성전기(+91.7%), LG이노텍(+78.8%) 포함 전방위 강세. HBM 수요 폭발로 실적 서프라이즈 행진. <span class="badge badge-file">[파일]</span></div>
+    </div>
+
+    <!-- 전력기기/에너지 -->
+    <div class="sector-row">
+      <div class="sector-name">전력기기 / 에너지</div>
+      <div class="sector-pct up">+50%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:58%;background:var(--up)"></div></div>
+      <div class="sector-summary">LS ELECTRIC(+73.5%), 효성중공업(+46.2%), HD현대에너지솔루션(+87.5%). AI 데이터센터 전력 인프라 투자 확대와 중동 에너지 재편 기대감이 동반 상승 견인. <span class="badge badge-file">[파일]</span></div>
+    </div>
+
+    <!-- 이차전지 -->
+    <div class="sector-row">
+      <div class="sector-name">이차전지 / ESS</div>
+      <div class="sector-pct up">+40%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:46%;background:var(--up)"></div></div>
+      <div class="sector-summary">삼성SDI(+71.4%), 한화솔루션(+42.2%), 엘앤에프(+25.6%). 독일 배터리 계약 소식과 ESS 수요 급증으로 이차전지 섹터 재점화. <span class="badge badge-file">[파일]</span></div>
+    </div>
+
+    <!-- 방산/조선 -->
+    <div class="sector-row">
+      <div class="sector-name">방산 / 조선</div>
+      <div class="sector-pct up">+35%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:40%;background:var(--up)"></div></div>
+      <div class="sector-summary">HD현대중공업(+37.4%), 현대로템(+45.8%), 한화에어로스페이스. 중동전쟁에 따른 글로벌 군비 증강 트렌드와 조선 수주 잔고 호조로 지속 상승. <span class="badge badge-file">[파일]</span></div>
+    </div>
+
+    <div class="sector-divider">🔻 약세 섹터</div>
+
+    <!-- 바이오(일부) -->
+    <div class="sector-row">
+      <div class="sector-name">바이오 (일부)</div>
+      <div class="sector-pct down">-40%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:46%;background:var(--down)"></div></div>
+      <div class="sector-summary">삼천당제약(-62.6%), 임상 실패 및 락업 해제 물량 부담. 그러나 리가켐바이오 등 기술수출 기업은 역행 강세. 종목 간 차별화 심화. <span class="badge badge-file">[파일]</span></div>
+    </div>
+
+    <!-- 자동차 -->
+    <div class="sector-row">
+      <div class="sector-name">자동차</div>
+      <div class="sector-pct down">-3%</div>
+      <div class="sector-bar-wrap"><div class="sector-bar" style="width:4%;background:var(--down)"></div></div>
+      <div class="sector-summary">기아(-2.6%), 현대차(+7.3%). 미국 관세 리스크 잔존 속 실적 체력으로 방어. 트럼프 대미 협상 변수가 업종 전체 불확실성 요인. <span class="badge badge-file">[파일]</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── s5: 종목·테마 ── -->
+<section id="s5" class="section">
+  <div class="section-header">
+    <span class="sec-icon">⚡</span>
+    <div>
+      <div class="sec-title-ko">주도 종목 &amp; 테마</div>
+      <div class="sec-title-en">Stocks &amp; Themes</div>
+    </div>
+  </div>
+
+  <div class="subsec-title">📈 월간 주도 종목 (거래대금·등락률 기준 <span class="badge badge-file">[파일]</span>)</div>
+  <div class="stock-grid">
+    <div class="stock-card">
+      <div class="stock-name">삼성전자</div>
+      <div class="stock-code">005930 · KOSPI</div>
+      <div class="stock-pct up">+22.70%</div>
+      <div class="stock-reason">거래대금 1위(12.2조). HBM3E·AI 반도체 수요 급증 + 1Q26 어닝 서프라이즈. 23만전자 달성.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">SK하이닉스</div>
+      <div class="stock-code">000660 · KOSPI</div>
+      <div class="stock-pct up">+39.48%</div>
+      <div class="stock-reason">거래대금 2위(10.5조). 1Q26 영업이익률 72%·사상 최고. 외국인 1.78조 순매수 견인.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">대우건설</div>
+      <div class="stock-code">047040 · KOSPI</div>
+      <div class="stock-pct up">+102.78%</div>
+      <div class="stock-reason">거래대금 3위(2.76조). 중동 전후 재건 특수 기대 + 국내 재개발 수주 확대. 월간 대형주 최고 등락률.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">삼성전기</div>
+      <div class="stock-code">009150 · KOSPI</div>
+      <div class="stock-pct up">+91.71%</div>
+      <div class="stock-reason">AI 서버·폴더블 기판 수주 급증. 1분기 실적 대폭 상향. 반도체 밸류체인 핵심 수혜.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">삼성SDI</div>
+      <div class="stock-code">006400 · KOSPI</div>
+      <div class="stock-pct up">+71.39%</div>
+      <div class="stock-reason">독일 ESS 대규모 공급 계약 + 전기차 수요 회복. 이차전지 섹터 선도주.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">HD현대에너지솔루션</div>
+      <div class="stock-code">322000 · KOSPI</div>
+      <div class="stock-pct up">+87.50%</div>
+      <div class="stock-reason">중동 에너지 인프라 재편 수혜 + 태양광·수소 사업 신규 수주. 에너지전환 테마 급부상.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">LS ELECTRIC</div>
+      <div class="stock-code">010120 · KOSPI</div>
+      <div class="stock-pct up">+73.53%</div>
+      <div class="stock-reason">AI 데이터센터 전력기기 수주 급증. 미국 전력망 현대화 사업 진출 가속화.</div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-name">현대로템</div>
+      <div class="stock-code">064350 · KOSPI</div>
+      <div class="stock-pct up">+45.77%</div>
+      <div class="stock-reason">방산 K2 전차 동유럽 추가 수출 기대 + 수소전기열차 신규 수주. 방산·철도 복합 모멘텀.</div>
+    </div>
+  </div>
+
+  <div class="subsec-title">🔥 월간 핵심 테마</div>
+  <div class="theme-list">
+    <div class="theme-item">
+      <div class="theme-name">① 반도체 초호황 & AI HBM 사이클</div>
+      <div class="theme-summary">SK하이닉스가 1분기 영업이익률 72%를 기록, TSMC(58%)를 웃돌며 전 세계 반도체 이익 성장의 정점을 보여줬다. AI 가속기에 필수적인 HBM 수요가 폭발적으로 증가하면서 삼성전자·SK하이닉스·삼성전기·이수페타시스 등 반도체 밸류체인 전반에 강력한 상승 모멘텀을 제공하며 코스피를 사상 최고치로 이끈 핵심 동력이 됐다.</div>
+      <div class="theme-stocks">관련주: 삼성전자 · SK하이닉스 · 삼성전기 · 이수페타시스 · 주성엔지니어링 · 한미반도체</div>
+    </div>
+    <div class="theme-item">
+      <div class="theme-name">② 중동 전쟁 수혜 — 방산·건설·에너지 동반 급등</div>
+      <div class="theme-summary">3월 발발한 미국-이란 전쟁이 한국 방산·건설·에너지 섹터에 뜻밖의 호재로 작용했다. 글로벌 군비 증강 트렌드가 방산주를 직접 끌어올렸고, 중동 재건 특수 기대감이 건설주에, 에너지 공급망 재편이 에너지·전력기기 업종에 큰 폭의 상승을 가져왔다. 4월 8일 미국-이란 2주 휴전 합의로 공포 심리가 빠르게 진정됐다.</div>
+      <div class="theme-stocks">관련주: 대우건설 · 대한전선 · 현대로템 · HD현대중공업 · 한화에어로스페이스 · HD현대에너지솔루션</div>
+    </div>
+    <div class="theme-item">
+      <div class="theme-name">③ 코리아 디스카운트 해소 & 코스피 사상 최고치 경신</div>
+      <div class="theme-summary">외국인과 기관의 쌍끌이 매수로 코스피가 4월 중 사상 최고치를 연일 갈아치웠다. 코스피 PBR 0.91배로 역사적 저평가 매력이 부각되면서 글로벌 투자자들의 자금이 지속 유입됐고, 골드만삭스는 코스피 목표치를 7,000에서 8,000으로 상향하는 등 해외 IB도 한국 시장에 대한 긍정적 시각을 강화했다. 개인의 역대 최대 순매도(-14.7조)는 시장 과열에 대한 경계심과 차익 실현 욕구를 반영한다.</div>
+      <div class="theme-stocks">관련주: 삼성전자 · SK하이닉스 · POSCO홀딩스 · KB금융 · 삼성물산</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── s6: 주요 이슈 ── -->
+<section id="s6" class="section">
+  <div class="section-header">
+    <span class="sec-icon">📰</span>
+    <div>
+      <div class="sec-title-ko">주요 이슈</div>
+      <div class="sec-title-en">Monthly Issues</div>
+    </div>
+  </div>
+
+  <div class="news-list">
+    <div class="news-item">
+      <span class="news-impact impact-pos">증시↑ 긍정</span>
+      <div>
+        <div class="news-title">SK하이닉스 1Q26 어닝 서프라이즈 — 영업이익률 72%, 창사 이래 최고</div>
+        <div class="news-summary">SK하이닉스가 4월 23일 2026년 1분기 실적을 공시, 매출 52.6조원·영업이익 37.6조원(전년비 +405%)을 기록했다. 영업이익률 72%는 TSMC(58%)를 웃도는 세계 최고 수준으로, 이 발표 직후 코스피는 연일 사상 최고치를 경신하는 기폭제가 됐다. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+    <div class="news-item">
+      <span class="news-impact impact-neg">환율↑ 리스크</span>
+      <div>
+        <div class="news-title">미국-이란 전쟁 발발 → 코스피 5,093 급락 후 빠른 회복</div>
+        <div class="news-summary">3월 중 미국-이란 전쟁이 발발하며 코스피는 5,093까지 고꾸라졌다(전고점 6,307 대비 –19%). 그러나 4월 8일 2주 휴전 합의 이후 빠르게 반등, 4월 20일 전고점을 회복하고 신고가 행진에 돌입했다. 전쟁이 오히려 방산·건설·에너지 수혜로 이어지는 역설적 장세. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+    <div class="news-item">
+      <span class="news-impact impact-pos">증시↑ 긍정</span>
+      <div>
+        <div class="news-title">코스피 사상 최고치 행진 — 장중 6,750p 돌파 (4/30)</div>
+        <div class="news-summary">4월 28일 장중 6,712p 돌파에 이어 30일 장중 6,750.27p까지 상승하며 사상 최고치를 재차 갈아치웠다. 골드만삭스는 목표치를 8,000으로 상향했고, 노무라·JP모건 등 해외 IB도 코스피 상단을 7,500~8,500으로 제시하며 강세장 전망을 유지했다. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+    <div class="news-item">
+      <span class="news-impact impact-neu">중립</span>
+      <div>
+        <div class="news-title">개인투자자 역대 최대 순매도 –14.7조 (4/27 기준)</div>
+        <div class="news-summary">코스피 신고가 행진 속에서도 개인은 월간 14조7137억원을 순매도하며 역대 최대 기록을 세웠다. 삼성전자(8.0조), SK하이닉스(3.9조) 집중 차익실현. 반면 외국인(+18조)·기관(+9조)의 쌍끌이 매수가 지수를 끌어올리며 상반된 흐름이 연출됐다. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+    <div class="news-item">
+      <span class="news-impact impact-neg">리스크↑</span>
+      <div>
+        <div class="news-title">고유가 장기화 — 브렌트유 $107~120, 4년 만의 최고치</div>
+        <div class="news-summary">호르무즈 해협 긴장 지속으로 브렌트유가 4월 장중 $119.76를 기록, 2022년 이후 최고치를 돌파했다. 에너지 수입 의존 국가인 한국의 수입 비용을 압박하고, 물가 상방 압력을 확대해 한국은행의 금리 인하 기대를 후퇴시켰다. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+    <div class="news-item">
+      <span class="news-impact impact-neu">중립</span>
+      <div>
+        <div class="news-title">한국은행 기준금리 2.5% 7회 연속 동결 · 신임 총재 취임</div>
+        <div class="news-summary">4월 10일 금통위는 기준금리를 2.50%로 유지했다. 중동전쟁으로 인한 물가 상방 압력과 성장 하방 리스크가 동시에 작용해 인하 명분이 약화됐다. 신현송 신임 총재가 취임해 "신중하고 유연한" 통화정책을 예고했다. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+    <div class="news-item">
+      <span class="news-impact impact-pos">성장↑</span>
+      <div>
+        <div class="news-title">1Q26 GDP +1.7% QoQ, +3.6% YoY — 5년 만 최고 성장</div>
+        <div class="news-summary">4월 23일 한국은행 발표에 따르면 1분기 실질 GDP가 전기비 1.7% 성장하며 5년 만에 가장 빠른 성장률을 기록했다. 반도체 수출 급증과 설비투자 확대가 주도했으며, 이는 코스피 사상 최고치 행진을 뒷받침하는 펀더멘털 근거가 됐다. <span class="badge badge-search">[검색]</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── s7: 전망·총평 ── -->
+<section id="s7" class="section">
+  <div class="section-header">
+    <span class="sec-icon">📋</span>
+    <div>
+      <div class="sec-title-ko">전망 &amp; 총평</div>
+      <div class="sec-title-en">Outlook &amp; Summary</div>
+    </div>
+  </div>
+
+  <div class="outlook-box">
+    <div class="outlook-label">🔍 5월 예상 주도 섹터 &amp; 종목 <span class="badge badge-search">[검색]</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent);text-transform:uppercase;margin-bottom:.5rem;">① 반도체 · AI 소프트웨어</div>
+        <div style="font-size:.83rem;color:var(--muted);line-height:1.5;">실적 시즌 이후에도 HBM 수요 사이클 지속. 밸류에이션 정상화(선행PER 7.3배) 여력 잔존. 소프트웨어·AI 인프라로 순환매 확산 기대.</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--dim);margin-top:.4rem;">삼성전자 · SK하이닉스 · NAVER · 카카오</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent);text-transform:uppercase;margin-bottom:.5rem;">② 금융 · 투자은행</div>
+        <div style="font-size:.83rem;color:var(--muted);line-height:1.5;">이익 최고치 대비 PER 상대적 저평가. 밸류업 정책 효과 지속 + 주주환원 확대 기대. 지수 레벨업 수혜.</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--dim);margin-top:.4rem;">KB금융 · 하나금융 · 삼성증권 · 미래에셋증권</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent);text-transform:uppercase;margin-bottom:.5rem;">③ 바이오 · 헬스케어</div>
+        <div style="font-size:.83rem;color:var(--muted);line-height:1.5;">실적 시즌 외 구간 꾸준한 아웃퍼폼 기대. 글로벌 라이선싱 딜 파이프라인 풍부. 유동성 확장 환경 수혜.</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--dim);margin-top:.4rem;">삼성바이오로직스 · 한미약품 · 리가켐바이오</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent);text-transform:uppercase;margin-bottom:.5rem;">④ 소재 · 철강 턴어라운드</div>
+        <div style="font-size:.83rem;color:var(--muted);line-height:1.5;">중국 정책 모멘텀 강화 + 글로벌 Restocking 사이클 진입. 달러 약세 전환 시 외국인 매수 유입 기대.</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--dim);margin-top:.4rem;">POSCO홀딩스 · 고려아연 · 롯데케미칼</div>
+      </div>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--dim);padding:.6rem .8rem;background:rgba(155,120,64,.06);border-radius:8px;border-left:3px solid var(--accent);">
+      ⚠️ 리스크 요인 | 미-이란 휴전 종료(5월 초) 이후 지정학 불확실성 재점화 · FOMC 매파 동결 여파로 외국인 현물 수급 5월 소강 가능 · 브렌트유 $110+ 지속 시 물가·환율 이중 압박
+    </div>
+  </div>
+
+  <div class="outlook-box">
+    <div class="outlook-label">📅 5월 전망</div>
+    <div class="outlook-text">
+      5월 코스피는 <strong>단기 차익실현 소강 vs 추가 신고가 경신</strong> 사이의 기로에 놓일 전망이다. 실적 시즌이 마무리되는 5월 상순에는 외국인·기관의 수급 강도가 완화되며 지수가 6,500~6,700선에서 숨 고르기 국면에 진입할 가능성이 있다. 다만 <strong>골드만삭스·노무라·JP모건 등 해외 IB들이 코스피 목표치를 7,500~8,500선으로 상향</strong>한 상황에서 외국인 자금 재유입이 재개될 경우 추가 상승 여력은 충분하다. 대신증권은 상반기 목표 7,500을 제시하며 "선행PER 8배=코스피 7,100, 9배=7,900"의 밸류에이션 상승 여력을 강조했다. 핵심 변수는 ① 미-이란 휴전 종료(5월 초) 이후 지정학 리스크 향방, ② 브렌트유 $110~120 지속에 따른 물가·환율 압박, ③ 5월 소강 전환 후 외국인 수급 복귀 시점이다. 포트폴리오 전략으로는 반도체·전력기기 핵심주 유지 + 금융·바이오·소재 등 저평가 순환매 섹터 편입 비중을 점진적으로 확대하는 방향이 유효하다.
+    </div>
+  </div>
+
+  <div class="outlook-box">
+    <div class="outlook-label">📝 4월 월간 총평</div>
+    <div class="outlook-text">
+      2026년 4월 한국 증시는 '전쟁을 이긴 불장'으로 기억될 것이다. 3월 미국-이란 전쟁 발발로 5,093까지 붕괴했던 코스피는 채 한 달 만에 6,750p까지 반등하며 역사상 최고치를 연이어 갈아치웠다. 이 상승의 핵심 동력은 <strong>SK하이닉스의 세계 최고 영업이익률 72%</strong>로 상징되는 반도체 실적 초호황이었으며, 건설·방산·에너지·전력기기 등 다양한 섹터로 매수세가 순환하며 폭넓은 장세를 만들었다. 외국인과 기관의 쌍끌이 매수는 18조+9조원이라는 전례 없는 규모에 달했고, 개인의 역대 최대 차익실현(-14.7조)조차 지수를 꺾지 못했다. 고유가와 원화 약세, 미국의 매파적 금리 동결이라는 삼중 역풍에도 불구하고 견고한 실적 기반이 시장을 지지하면서 코스피의 뉴 노멀 레인지가 6,000선 이상으로 확립됐다는 평가가 지배적이다.
+    </div>
+  </div>
+
+  <div class="data-source">
+    데이터 출처 | [파일] KRX 월간 거래대금·등락률 상위 50종목 (data_1752·1730_20260430.csv) &nbsp;·&nbsp; [검색] 뉴스핌, 이데일리, 한국은행, TradingEconomics, Investing.com, MBC뉴스 &nbsp;·&nbsp; 생성일: 2026.04.30 &nbsp;·&nbsp; 한상훈_AI_투자브리핑
+  </div>
+</section>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.querySelector('.theme-btn').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+    updateCharts();
+  }
+  function getVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  let mainChart, flowChart;
+
+  function buildMainChart() {
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    mainChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['1주차(4/4)', '2주차(4/11)', '3주차(4/18)', '4주차(4/25)', '5주차(4/30)'],
+        datasets: [
+          {
+            label: '코스피',
+            data: [5520, 5870, 6100, 6420, 6599],
+            borderColor: getVar('--up'),
+            backgroundColor: 'transparent',
+            yAxisID: 'y',
+            tension: 0.35, pointRadius: 5, borderWidth: 2,
+          },
+          {
+            label: '코스닥',
+            data: [960, 1050, 1120, 1180, 1192],
+            borderColor: getVar('--accent2'),
+            backgroundColor: 'transparent',
+            borderDash: [5, 3],
+            yAxisID: 'y2',
+            tension: 0.35, pointRadius: 5, borderWidth: 2,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y:  { position: 'left',  ticks: { font: { family: 'IBM Plex Mono', size: 11 }, callback: v => v.toLocaleString() }, title: { display: true, text: '코스피', font: { family: 'IBM Plex Mono', size: 11 } } },
+          y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { family: 'IBM Plex Mono', size: 11 }, callback: v => v.toLocaleString() }, title: { display: true, text: '코스닥', font: { family: 'IBM Plex Mono', size: 11 } } },
+          x:  { ticks: { font: { family: 'IBM Plex Mono', size: 10 } } }
+        },
+        plugins: {
+          legend: { labels: { font: { family: 'IBM Plex Mono', size: 11 } } },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}` } }
+        }
+      }
+    });
+  }
+
+  function buildFlowChart() {
+    const ctx = document.getElementById('flowChart').getContext('2d');
+    const values = [180000, 90000, -147137];
+    flowChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['외국인', '기관', '개인'],
+        datasets: [{
+          data: values,
+          backgroundColor: values.map(v => v >= 0 ? getVar('--up') + '99' : getVar('--down') + '99'),
+          borderColor:      values.map(v => v >= 0 ? getVar('--up')       : getVar('--down')),
+          borderWidth: 1.5,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${(ctx.parsed.x/10000).toFixed(1)}조원` } } },
+        scales: {
+          x: { ticks: { font: { family: 'IBM Plex Mono', size: 11 }, callback: v => (v/10000).toFixed(0) + '조' } },
+          y: { ticks: { font: { family: 'IBM Plex Mono', size: 13 } } }
+        }
+      }
+    });
+  }
+
+  function updateCharts() {
+    if (mainChart) {
+      mainChart.data.datasets[0].borderColor = getVar('--up');
+      mainChart.data.datasets[1].borderColor = getVar('--accent2');
+      mainChart.update();
+    }
+    if (flowChart) {
+      const values = flowChart.data.datasets[0].data;
+      flowChart.data.datasets[0].backgroundColor = values.map(v => v >= 0 ? getVar('--up') + '99' : getVar('--down') + '99');
+      flowChart.data.datasets[0].borderColor      = values.map(v => v >= 0 ? getVar('--up')       : getVar('--down'));
+      flowChart.update();
+    }
+  }
+
+  window.addEventListener('load', () => {
+    buildMainChart();
+    buildFlowChart();
+  });
+</script>
+</body>
+</html>
